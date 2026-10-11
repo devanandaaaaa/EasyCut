@@ -1,0 +1,16 @@
+[
+  {
+    "id": "eval_001",
+    "script_scene": "A student walks through the college campus.",
+    "expected_video": "test_video.mp4",
+    "expected_start": 0.0,
+    "expected_end": 2.0
+  },
+  {
+    "id": "eval_002",
+    "script_scene": "A person stands outside near a college building.",
+    "expected_video": "test_video.mp4",
+    "expected_start": 0.0,
+    "expected_end": 2.0
+  }
+]

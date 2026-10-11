@@ -1,0 +1,14 @@
+{
+  "embedding_model": "all-MiniLM-L6-v2",
+  "embedding_dimension": 384,
+  "feature_dimension": 1536,
+  "classifier": "LogisticRegression",
+  "dataset_size": 40,
+  "training_samples": 28,
+  "validation_samples": 6,
+  "test_samples": 6,
+  "validation_accuracy": 0.8333333333333334,
+  "test_accuracy": 0.8333333333333334,
+  "test_correct_predictions": 5,
+  "test_total_predictions": 6
+}

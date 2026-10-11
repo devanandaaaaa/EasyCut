@@ -1,0 +1,62 @@
+/* =========================================
+   EasyCut Theme System
+   ========================================= */
+
+:root {
+  /* Shared */
+  --ec-font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+
+  --ec-radius-sm: 10px;
+  --ec-radius-md: 16px;
+  --ec-radius-lg: 24px;
+
+  --ec-transition: 180ms ease;
+
+  /* Light Cute Theme */
+  --ec-bg: #faf8f5;
+  --ec-surface: #ffffff;
+  --ec-surface-soft: #f4f0f7;
+
+  --ec-text: #292633;
+  --ec-text-muted: #756f7d;
+
+  --ec-primary: #8170b7;
+  --ec-primary-hover: #6f5da8;
+
+  --ec-secondary: #a8b9d8;
+  --ec-accent: #d7a6a6;
+
+  --ec-border: #e7e1ea;
+
+  --ec-success: #7fa88a;
+  --ec-danger: #c97d7d;
+
+  --ec-shadow: 0 10px 30px rgba(71, 57, 91, 0.08);
+}
+
+/* =========================================
+   Dark Professional Theme
+   ========================================= */
+
+[data-theme="dark"] {
+  --ec-bg: #10131c;
+  --ec-surface: #171b27;
+  --ec-surface-soft: #202536;
+
+  --ec-text: #f3f4f8;
+  --ec-text-muted: #9da5b8;
+
+  --ec-primary: #8b7cf6;
+  --ec-primary-hover: #7565e8;
+
+  --ec-secondary: #5d7fc7;
+  --ec-accent: #6f8cff;
+
+  --ec-border: #2b3142;
+
+  --ec-success: #79b894;
+  --ec-danger: #d77f8a;
+
+  --ec-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}

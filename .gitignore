@@ -1,0 +1,41 @@
+﻿# Secrets and environment variables
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Python environment and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Node dependencies and builds
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
+
+# Local databases and vector database
+*.db
+*.sqlite3
+chroma_db/
+**/chroma_db/
+
+# Generated media and temporary data
+data/audio/
+data/frames/
+data/frames_test/
+data/generated/
+data/source_videos/
+data/*.mp4
+backend/uploads/
+
+# Logs and editor files
+*.log
+.vscode/
+.idea/
+.DS_Store

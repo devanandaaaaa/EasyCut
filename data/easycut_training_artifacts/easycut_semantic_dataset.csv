@@ -1,0 +1,41 @@
+script_scene,video_scene,match
+A student walks through the college campus.,A student is walking along a college campus.,1
+A student enters the classroom.,A student is entering a classroom.,1
+A student works on a laptop.,A student is typing on a laptop at a desk.,1
+Students discuss their project together.,Several students are sitting together and discussing a project.,1
+A person drinks a cup of coffee.,Someone is drinking coffee from a mug.,1
+Someone prepares a morning coffee.,A person is making coffee in a kitchen.,1
+A person walks through a park.,Someone is walking along a path surrounded by trees.,1
+The sun sets over the mountains.,A beautiful sunset is visible behind the mountains.,1
+A student reads a book.,A student is sitting and reading a textbook.,1
+Students sit inside a classroom.,Several students are seated in a classroom.,1
+A person types on a computer.,Someone is working at a computer and typing.,1
+Friends talk together.,A group of friends are having a conversation.,1
+A person rides a bicycle.,Someone is cycling along a road.,1
+A person cooks food.,Someone is preparing food in a kitchen.,1
+A dog runs across the grass.,A dog is running through a grassy field.,1
+A person drives a car.,Someone is driving a vehicle on the road.,1
+A student writes notes.,A student is writing in a notebook.,1
+People walk along a beach.,Several people are walking beside the sea.,1
+A person takes a photograph.,Someone is using a camera to take a picture.,1
+A person watches the sunset.,Someone is looking at the evening sky as the sun sets.,1
+A student works on a laptop.,A person is cooking food in a kitchen.,0
+A person drinks coffee.,A dog is running across a field.,0
+Students discuss their project.,A car is driving along a highway.,0
+A student walks through campus.,Someone is preparing food in a kitchen.,0
+The sun sets over the mountains.,A student is typing on a laptop.,0
+A person rides a bicycle.,Several students are sitting inside a classroom.,0
+A person cooks food.,A person is taking photographs outdoors.,0
+A student reads a book.,A group of people are cycling on a road.,0
+Friends talk together.,The sun is setting behind a mountain.,0
+A person drives a car.,Someone is drinking coffee from a mug.,0
+A student writes notes.,A dog is running through a park.,0
+People walk along a beach.,A person is working on a computer.,0
+A person takes a photograph.,Students are having a classroom discussion.,0
+A dog runs across the grass.,A person is preparing coffee.,0
+A person watches the sunset.,Someone is riding a bicycle.,0
+A student enters the classroom.,A person is driving a car.,0
+A person walks through a park.,A student is writing notes in a classroom.,0
+Students sit inside a classroom.,A person is walking along a beach.,0
+A person types on a computer.,A dog is playing in the grass.,0
+A person drinks coffee.,Friends are discussing a project.,0

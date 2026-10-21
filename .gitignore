@@ -39,3 +39,9 @@ backend/uploads/
 .vscode/
 .idea/
 .DS_Store
+
+# Local ZIP backups - do not commit
+/backend.zip.zip
+/data.zip.zip
+/docs.zip.zip
+/frontend.zip.zip

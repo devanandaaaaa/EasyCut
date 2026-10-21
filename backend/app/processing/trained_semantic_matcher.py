@@ -1,3 +1,4 @@
+
 from app.ai.trained_matcher import predict_match
 from app.processing.semantic_matcher import match_script_scene
 
@@ -5,19 +6,17 @@ from app.processing.semantic_matcher import match_script_scene
 def rerank_matches(
     script_scene: str,
     n_candidates: int = 5,
+    video_files: list[str] | None = None,
 ) -> list[dict]:
     """
-    Retrieve candidate video scenes from ChromaDB
-    and re-rank them using the trained semantic matcher.
-
-    ChromaDB distance remains part of the ranking signal,
-    while the trained classifier provides an additional
-    semantic matching signal.
+    Retrieve candidate scenes, optionally restricted to uploaded videos,
+    and rank them using the trained matcher and ChromaDB similarity.
     """
 
     candidates = match_script_scene(
         script_scene,
         n_results=n_candidates,
+        video_files=video_files,
     )
 
     reranked = []
@@ -28,11 +27,6 @@ def rerank_matches(
             video_scene=candidate["description"],
         )
 
-        # Combine the trained matcher probability with
-        # the normalized ChromaDB similarity.
-        #
-        # ChromaDB distance is converted so that smaller
-        # distances produce higher similarity.
         chroma_similarity = 1.0 / (1.0 + candidate["distance"])
 
         hybrid_score = (

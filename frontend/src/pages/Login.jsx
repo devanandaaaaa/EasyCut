@@ -76,7 +76,8 @@ function Login() {
 
       localStorage.setItem("easycut-token", token);
 
-      navigate("/dashboard");
+      const destination = location.state?.from || "/dashboard";
+      navigate(destination, { replace: true });
     } catch (requestError) {
       const status = requestError.response?.status;
       const detail = requestError.response?.data?.detail;

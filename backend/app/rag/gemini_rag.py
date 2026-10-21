@@ -45,12 +45,35 @@ def add_scene(
     )
 
 
-def search_scenes(query: str, n_results: int = 3):
-    """Search stored video scenes using a Gemini embedding."""
+def search_scenes(
+    query: str,
+    n_results: int = 3,
+    video_files: list[str] | None = None,
+):
+    """Search stored video scenes, optionally restricted to selected videos."""
 
     query_embedding = create_embedding(query)
 
-    return collection.query(
-        query_embeddings=[query_embedding],
-        n_results=n_results,
-    )
+    if video_files is not None:
+        indexed = collection.get(
+            where={"video_file": {"$in": video_files}},
+            include=["metadatas"],
+        )
+        available = len(indexed.get("ids", []))
+        if available == 0:
+            return {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+        n_results = min(n_results, available)
+    else:
+        n_results = min(n_results, collection.count())
+
+    query_args = {
+        "query_embeddings": [query_embedding],
+        "n_results": n_results,
+    }
+
+    if video_files:
+        query_args["where"] = {
+            "video_file": {"$in": video_files}
+        }
+
+    return collection.query(**query_args)

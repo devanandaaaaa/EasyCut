@@ -9,9 +9,11 @@ import {
 } from "lucide-react";
 
 import { useTheme } from "../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   return (
     <main className="landing-page">
       {/* Navigation */}
@@ -85,12 +87,17 @@ function Home() {
               <ArrowRight size={17} />
             </a>
 
-            <button type="button" className="landing-demo-button">
+            <button
+              type="button"
+              className="landing-demo-button"
+              onClick={() => navigate("/demo")}
+            >
               <span className="landing-play-icon">
                 <Play size={13} fill="currentColor" />
               </span>
               Watch Demo
             </button>
+
           </div>
         </div>
 

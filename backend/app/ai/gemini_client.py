@@ -8,7 +8,6 @@ from google.genai import errors
 
 load_dotenv()
 
-
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
@@ -17,16 +16,21 @@ if not GEMINI_API_KEY:
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-
-STORY_MODEL = "gemini-3.6-flash"
+# Keep the currently configured models until the alternative
+# model has been verified in your Google AI Studio project.
+STORY_MODEL = "gemini-3.5-flash-lite"
 EMBEDDING_MODEL = "gemini-embedding-2"
 
 
-def understand_story(text: str, max_attempts: int = 3) -> str:
+def understand_story(
+    text: str,
+    max_attempts: int = 3,
+) -> str:
     """
-    Understand a script and extract its main visual scenes.
+    Identify the main visual scenes in a script.
 
-    Retries temporary Gemini server errors.
+    Retries temporary server errors with a short delay.
+    Does not automatically retry quota-exceeded errors.
     """
 
     prompt = f"""
@@ -50,7 +54,25 @@ Script:
                 contents=prompt,
             )
 
-            return response.text.strip()
+            result = response.text
+
+            if not result or not result.strip():
+                raise RuntimeError(
+                    "Gemini returned an empty story analysis."
+                )
+
+            return result.strip()
+
+        except errors.ClientError as error:
+            if getattr(error, "code", None) == 429:
+                raise RuntimeError(
+                    "Gemini request quota or rate limit exceeded. "
+                    "Wait until the quota resets, or check the "
+                    "model's limits and billing in Google AI Studio. "
+                    "The request was not automatically retried."
+                ) from error
+
+            raise
 
         except errors.ServerError:
             if attempt == max_attempts:
@@ -59,9 +81,11 @@ Script:
             wait_seconds = attempt * 3
 
             print(
-                f"Gemini server temporarily unavailable. "
+                "Gemini server temporarily unavailable. "
                 f"Retrying in {wait_seconds} seconds "
                 f"(attempt {attempt}/{max_attempts})..."
             )
 
             time.sleep(wait_seconds)
+
+    raise RuntimeError("Story analysis could not be completed.")

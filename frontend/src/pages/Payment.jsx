@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -7,9 +8,59 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import api from "../services/api";
 
 function Payment() {
+  const billingPeriod = useLocation().state?.billingPeriod === "yearly" ? "yearly" : "monthly";
+  const plan = billingPeriod === "yearly" ? "premium_yearly" : "premium_monthly";
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function startCheckout() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const { data: order } = await api.post("/payment/create-order", { plan });
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+      }
+      const checkout = new window.Razorpay({
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: "EasyCut Premium",
+        description: billingPeriod === "yearly" ? "Premium yearly plan" : "Premium monthly plan",
+        order_id: order.order_id,
+        handler: async (paymentResponse) => {
+          try {
+            await api.post("/payment/verify", paymentResponse);
+            setMessage("Payment verified. Premium is active for your account.");
+          } catch (error) {
+            setMessage(error.response?.data?.detail || "Payment could not be verified. Your plan has not been activated.");
+          } finally {
+            setBusy(false);
+          }
+        },
+        modal: { ondismiss: () => setBusy(false) },
+      });
+      checkout.on("payment.failed", (event) => {
+        setMessage(event.error?.description || "Payment failed. Your plan has not been activated.");
+        setBusy(false);
+      });
+      checkout.open();
+    } catch (error) {
+      setMessage(error.response?.data?.detail || "Could not start secure checkout. Please try again.");
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="payment-page">
       <div className="payment-shell">
@@ -50,8 +101,8 @@ function Payment() {
             </div>
 
             <div className="payment-summary-price">
-              <strong>₹299</strong>
-              <span>/ month</span>
+              <strong>{billingPeriod === "yearly" ? "₹2,499" : "₹299"}</strong>
+              <span>{billingPeriod === "yearly" ? "/ year" : "/ month"}</span>
             </div>
 
             <div className="payment-summary-divider" />
@@ -133,23 +184,21 @@ function Payment() {
               <ShieldCheck size={18} />
 
               <p>
-                You'll be redirected to Razorpay's secure checkout when
-                payment integration is enabled.
+                Continue to Razorpay secure checkout. Premium is activated only after the server verifies a captured payment.
               </p>
             </div>
 
             <button
               type="button"
               className="payment-button"
-              disabled
+              disabled={busy}
+              onClick={startCheckout}
             >
-              Continue to Secure Payment
+              {busy ? "Connecting to Razorpay..." : "Continue to Secure Payment"}
               <ArrowRight size={17} />
             </button>
 
-            <p className="payment-demo-note">
-              Payment gateway connection will be added next.
-            </p>
+            {message && <p className="payment-demo-note" role="status">{message}</p>}
 
           </article>
 

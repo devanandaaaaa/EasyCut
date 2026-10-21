@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
-
 
 Base = declarative_base()
 
@@ -14,6 +14,9 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    subscription_status = Column(String(20), nullable=False, default="free")
+    subscription_plan = Column(String(40), nullable=True)
+    subscription_expires_at = Column(DateTime, nullable=True)
 
     projects = relationship(
         "Project",
@@ -29,18 +32,22 @@ class Project(Base):
     name = Column(String(150), nullable=False)
     description = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    owner = relationship(
-        "User",
-        back_populates="projects"
-    )
+    # Saved video and editing information
+    video_url = Column(Text, nullable=True)
+    final_video_url = Column(Text, nullable=True)
+    editor_settings = Column(Text, nullable=True)
+    is_saved = Column(Boolean, nullable=False, default=True, server_default="1")
+
+    owner = relationship("User", back_populates="projects")
+
     files = relationship(
         "ProjectFile",
         back_populates="project",
         cascade="all, delete-orphan"
     )
+
 
 class ProjectFile(Base):
     __tablename__ = "project_files"
@@ -56,7 +63,18 @@ class ProjectFile(Base):
     file_type = Column(String(50), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    project = relationship(
-        "Project",
-        back_populates="files"
-    )
+    project = relationship("Project", back_populates="files")
+
+
+class PaymentOrder(Base):
+    __tablename__ = "payment_orders"
+
+    order_id = Column(String(100), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    plan = Column(String(40), nullable=False)
+    amount = Column(Integer, nullable=False)
+    currency = Column(String(3), nullable=False)
+    status = Column(String(20), nullable=False, default="pending")
+    payment_id = Column(String(100), unique=True, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    verified_at = Column(DateTime, nullable=True)

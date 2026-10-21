@@ -160,6 +160,7 @@ function Templates() {
 
           <Link
             to="/create-project"
+            state={{ startNew: true }}
             className="templates-new-button"
           >
             <Sparkles size={15} />
@@ -207,6 +208,7 @@ function Templates() {
 
               <Link
                 to="/create-project"
+                state={{ template: "Cinematic Story" }}
                 className="templates-featured-button"
               >
                 Start with this template
@@ -284,13 +286,15 @@ function Templates() {
 
                     <p>{template.description}</p>
 
-                    <button
-                      type="button"
+                    <Link
+                      to="/create-project"
+                      state={{ template: template.name }}
                       className="template-use-button"
                     >
                       Use Template
                       <ArrowRight size={14} />
-                    </button>
+                    </Link>
+
                   </div>
                 </article>
               ))}

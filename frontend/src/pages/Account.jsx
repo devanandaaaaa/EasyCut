@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -15,16 +15,49 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 function Account() {
   const [isEditing, setIsEditing] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const [name, setName] = useState("Devananda K");
-  const [email, setEmail] = useState("devananda@example.com");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [usage, setUsage] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [loadError, setLoadError] = useState("");
 
   const [editName, setEditName] = useState(name);
   const [editEmail, setEditEmail] = useState(email);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      api.get("/auth/me"),
+      api.get("/auth/usage"),
+      api.get("/auth/projects"),
+    ])
+      .then(([userResponse, usageResponse, projectsResponse]) => {
+        if (!active) return;
+        setName(userResponse.data.username || "");
+        setEmail(userResponse.data.email || "");
+        setEditName(userResponse.data.username || "");
+        setEditEmail(userResponse.data.email || "");
+        setUsage(usageResponse.data);
+        setProjects(projectsResponse.data);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setLoadError(error.response?.data?.detail || "Unable to load account statistics.");
+      });
+    return () => { active = false; };
+  }, []);
+
+  const videosCreated = projects.filter((project) => Boolean(project.video_url)).length;
+  const exportsCreated = projects.filter((project) => Boolean(project.final_video_url)).length;
+  const projectCount = usage?.project_count ?? 0;
+  const projectLimit = usage?.free_project_limit ?? 5;
+  const isPremium = Boolean(usage?.subscription_active);
 
   const handleEditOpen = () => {
     setEditName(name);
@@ -186,9 +219,7 @@ function Account() {
                 <p>Your current EasyCut usage.</p>
               </div>
 
-              <span className="account-plan-badge">
-                Free
-              </span>
+              <span className="account-plan-badge">{isPremium ? "Premium" : "Free"}</span>
             </div>
 
             <div className="account-plan-main">
@@ -197,7 +228,7 @@ function Account() {
               </div>
 
               <div>
-                <h3>Free Plan</h3>
+                <h3>{isPremium ? "Premium Plan" : "Free Plan"}</h3>
                 <p>
                   Perfect for getting started with EasyCut.
                 </p>
@@ -207,16 +238,17 @@ function Account() {
             <div className="account-usage">
               <div className="account-usage-top">
                 <span>Projects used</span>
-                <strong>0 / 5</strong>
+                <strong>{projectCount} / {isPremium ? "∞" : projectLimit}</strong>
               </div>
 
               <div className="account-progress">
-                <span style={{ width: "0%" }} />
+                <span style={{ width: `${isPremium ? 0 : Math.min(100, (projectCount / projectLimit) * 100)}%` }} />
               </div>
 
               <p>
-                You have 5 free projects available before
-                upgrading is required.
+                {isPremium
+                  ? "Your Premium plan gives you unlimited saved projects."
+                  : `You have ${Math.max(0, projectLimit - projectCount)} free projects available before upgrading is required.`}
               </p>
             </div>
 
@@ -245,7 +277,7 @@ function Account() {
                 </div>
 
                 <div>
-                  <strong>0</strong>
+                  <strong>{projectCount}</strong>
                   <span>Projects</span>
                 </div>
               </div>
@@ -256,7 +288,7 @@ function Account() {
                 </div>
 
                 <div>
-                  <strong>0</strong>
+                  <strong>{videosCreated}</strong>
                   <span>Videos created</span>
                 </div>
               </div>
@@ -267,12 +299,14 @@ function Account() {
                 </div>
 
                 <div>
-                  <strong>0</strong>
+                  <strong>{exportsCreated}</strong>
                   <span>Exports</span>
                 </div>
               </div>
             </div>
           </article>
+
+          {loadError && <p role="alert">{loadError}</p>}
 
           {/* Account actions */}
           <article className="account-card account-actions-card">

@@ -167,6 +167,7 @@ function Subscription() {
 
             <Link
               to="/payment"
+              state={{ billingPeriod: billing }}
               className="subscription-plan-button subscription-plan-button-primary"
             >
               Upgrade to Premium

@@ -1,7 +1,7 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  Bell,
   ChevronDown,
   Clock3,
   FolderOpen,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import api from "../services/api";
 
 function Dashboard() {
   const { theme, toggleTheme } = useTheme();
@@ -25,18 +26,76 @@ function Dashboard() {
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
+  const [recentProjects, setRecentProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState("");
+  const [usage, setUsage] = useState(null);
 
-  const recentProjects = [];
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleLogout = () => {
+    async function loadDashboardProjects() {
+      setProjectsLoading(true);
+      setProjectsError("");
+
+      try {
+        const [response, usageResponse] = await Promise.all([
+          api.get("/auth/projects"),
+          api.get("/auth/usage"),
+        ]);
+        const items = Array.isArray(response.data) ? response.data : [];
+
+        items.sort(
+          (a, b) =>
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime()
+        );
+
+        if (!cancelled) {
+          setRecentProjects(items);
+          setUsage(usageResponse.data);
+        }
+      } catch (error) {
+        console.error("Could not load dashboard projects:", error);
+
+        if (!cancelled) {
+          setProjectsError(
+            error.response?.data?.detail ||
+              "Could not load projects. Please try again."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setProjectsLoading(false);
+        }
+      }
+    }
+
+    loadDashboardProjects();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totalProjects = recentProjects.length;
+
+  const videosCreated = recentProjects.filter(
+    (project) => Boolean(project.final_video_url || project.video_url)
+  ).length;
+
+  const aiProjectsLeft = usage?.subscription_active
+    ? "Unlimited"
+    : Math.max(0, 5 - (usage?.project_count ?? totalProjects));
+
+  function handleLogout() {
     localStorage.removeItem("easycut-token");
     setIsUserMenuOpen(false);
     navigate("/login");
-  };
+  }
 
   return (
     <main className="dashboard-page">
-      {/* Sidebar */}
       <aside className="dashboard-sidebar">
         <Link to="/" className="dashboard-logo">
           <span className="dashboard-logo-icon">
@@ -56,18 +115,12 @@ function Dashboard() {
             Dashboard
           </Link>
 
-          <Link
-            to="/projects"
-            className="dashboard-nav-item"
-          >
+          <Link to="/projects" className="dashboard-nav-item">
             <FolderOpen size={17} />
             Projects
           </Link>
 
-          <Link
-            to="/templates"
-            className="dashboard-nav-item"
-          >
+          <Link to="/templates" className="dashboard-nav-item">
             <WandSparkles size={17} />
             Templates
           </Link>
@@ -76,25 +129,17 @@ function Dashboard() {
             Account
           </p>
 
-          <Link
-            to="/account"
-            className="dashboard-nav-item"
-          >
+          <Link to="/account" className="dashboard-nav-item">
             <User size={17} />
             Account
           </Link>
 
-          <Link
-            to="/settings"
-            className="dashboard-nav-item"
-          >
+          <Link to="/settings" className="dashboard-nav-item">
             <Settings size={17} />
             Settings
           </Link>
-          <Link
-            to="/about"
-            className="dashboard-nav-item"
-          >
+
+          <Link to="/about" className="dashboard-nav-item">
             <Sparkles size={17} />
             About EasyCut
           </Link>
@@ -108,12 +153,11 @@ function Dashboard() {
 
             <div>
               <strong>Free Plan</strong>
-              <span>5 projects available</span>
+              <span>{aiProjectsLeft} projects available</span>
             </div>
 
             <Link to="/subscription">
-              Upgrade
-              <ArrowRight size={13} />
+              Upgrade <ArrowRight size={13} />
             </Link>
           </div>
 
@@ -128,14 +172,13 @@ function Dashboard() {
         </div>
       </aside>
 
-      {/* Main content */}
       <section className="dashboard-main">
-        {/* Top bar */}
         <header className="dashboard-topbar">
           <button
             type="button"
             className="dashboard-mobile-menu"
             aria-label="Open menu"
+            onClick={() => setIsWorkspaceMenuOpen((current) => !current)}
           >
             <Menu size={19} />
           </button>
@@ -224,15 +267,6 @@ function Dashboard() {
               )}
             </button>
 
-            <button
-              type="button"
-              className="dashboard-icon-button"
-              aria-label="Notifications"
-            >
-              <Bell size={17} />
-            </button>
-
-            {/* USER MENU */}
             <div className="dashboard-user-menu">
               <button
                 type="button"
@@ -261,15 +295,9 @@ function Dashboard() {
               </button>
 
               {isUserMenuOpen && (
-                <div
-                  className="dashboard-user-dropdown"
-                  role="menu"
-                >
+                <div className="dashboard-user-dropdown" role="menu">
                   <div className="dashboard-dropdown-profile">
-                    <div className="dashboard-avatar">
-                      D
-                    </div>
-
+                    <div className="dashboard-avatar">D</div>
                     <div>
                       <strong>Devananda</strong>
                       <span>Free Plan</span>
@@ -321,7 +349,6 @@ function Dashboard() {
           </div>
         </header>
 
-        {/* Content */}
         <div className="dashboard-content">
           <section className="dashboard-welcome">
             <div>
@@ -342,6 +369,7 @@ function Dashboard() {
 
             <Link
               to="/create-project"
+              state={{ startNew: true }}
               className="dashboard-create-button"
             >
               <Plus size={18} />
@@ -349,7 +377,6 @@ function Dashboard() {
             </Link>
           </section>
 
-          {/* AI creation card */}
           <section className="dashboard-ai-card">
             <div className="dashboard-ai-content">
               <div className="dashboard-ai-badge">
@@ -364,13 +391,14 @@ function Dashboard() {
               </h2>
 
               <p>
-                Give EasyCut your story, voiceover and footage. Our
-                AI understands your content and finds the right
-                scenes automatically.
+                Give EasyCut your story, voiceover and footage. Our AI
+                understands your content and finds the right scenes
+                automatically.
               </p>
 
               <Link
                 to="/create-project"
+                state={{ startNew: true }}
                 className="dashboard-ai-button"
               >
                 Create with AI
@@ -400,16 +428,14 @@ function Dashboard() {
             </div>
           </section>
 
-          {/* Stats */}
           <section className="dashboard-stats">
             <div className="dashboard-stat-card">
               <div className="dashboard-stat-icon">
                 <FolderOpen size={17} />
               </div>
-
               <div>
                 <span>Total Projects</span>
-                <strong>0</strong>
+                <strong>{totalProjects}</strong>
               </div>
             </div>
 
@@ -417,10 +443,9 @@ function Dashboard() {
               <div className="dashboard-stat-icon">
                 <Clock3 size={17} />
               </div>
-
               <div>
                 <span>Videos Created</span>
-                <strong>0</strong>
+                <strong>{videosCreated}</strong>
               </div>
             </div>
 
@@ -428,22 +453,34 @@ function Dashboard() {
               <div className="dashboard-stat-icon">
                 <Sparkles size={17} />
               </div>
-
               <div>
                 <span>AI Projects Left</span>
-                <strong>5</strong>
+                <strong>{aiProjectsLeft}</strong>
               </div>
             </div>
           </section>
 
-          {/* Recent projects */}
+          {!usage?.subscription_active && (
+            <section className="dashboard-project-section" aria-live="polite">
+              <div className="dashboard-section-heading">
+                <div>
+                  <h2>Free project usage</h2>
+                  <p>{usage?.project_count ?? totalProjects}/5 projects used</p>
+                </div>
+                {(usage?.project_count ?? totalProjects) >= 5 && (
+                  <Link to="/subscription">
+                    View Premium plans <ArrowRight size={14} />
+                  </Link>
+                )}
+              </div>
+            </section>
+          )}
+
           <section className="dashboard-project-section">
             <div className="dashboard-section-heading">
               <div>
                 <h2>Recent Projects</h2>
-                <p>
-                  Your latest video projects will appear here.
-                </p>
+                <p>Your latest video projects will appear here.</p>
               </div>
 
               <Link to="/projects">
@@ -452,21 +489,30 @@ function Dashboard() {
               </Link>
             </div>
 
-            {recentProjects.length === 0 ? (
+            {projectsLoading ? (
+              <div className="dashboard-empty">
+                <p>Loading your projects...</p>
+              </div>
+            ) : projectsError ? (
+              <div className="dashboard-empty">
+                <h3>Couldn't load projects</h3>
+                <p>{projectsError}</p>
+              </div>
+            ) : recentProjects.length === 0 ? (
               <div className="dashboard-empty">
                 <div className="dashboard-empty-icon">
                   <FolderOpen size={22} />
                 </div>
 
                 <h3>No projects yet</h3>
-
                 <p>
-                  Create your first AI-powered video and it will
-                  appear here.
+                  Create your first AI-powered video and it will appear
+                  here.
                 </p>
 
                 <Link
                   to="/create-project"
+                  state={{ startNew: true }}
                   className="dashboard-empty-button"
                 >
                   <Plus size={16} />
@@ -475,7 +521,34 @@ function Dashboard() {
               </div>
             ) : (
               <div className="dashboard-project-grid">
-                {/* Projects will be loaded from the backend later */}
+                {recentProjects.slice(0, 4).map((project) => (
+                  <button
+                    type="button"
+                    className="dashboard-project-card"
+                    key={project.id}
+                    onClick={() => navigate("/projects")}
+                  >
+                    <span className="dashboard-project-icon">
+                      <FolderOpen size={20} />
+                    </span>
+
+                    <span className="dashboard-project-details">
+                      <strong>{project.name}</strong>
+                      <small>
+                        {project.created_at
+                          ? new Date(
+                              project.created_at
+                            ).toLocaleDateString()
+                          : "Date unavailable"}
+                      </small>
+                      <small>
+                        {project.final_video_url || project.video_url
+                          ? "Video saved"
+                          : "No video saved yet"}
+                      </small>
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
           </section>

@@ -1,16 +1,19 @@
+
 from app.rag.gemini_rag import search_scenes
 
 
 def match_script_scene(
     script_scene: str,
     n_results: int = 3,
+    video_files: list[str] | None = None,
 ) -> list[dict]:
-    """
-    Find the most semantically relevant video scenes
-    for a script scene.
-    """
+    """Find relevant scenes, optionally restricted to uploaded videos."""
 
-    results = search_scenes(script_scene, n_results)
+    results = search_scenes(
+        script_scene,
+        n_results=n_results,
+        video_files=video_files,
+    )
 
     matches = []
 

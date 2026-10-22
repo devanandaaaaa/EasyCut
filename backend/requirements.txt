@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+python-dotenv
+PyJWT
+python-multipart
+google-genai
+chromadb
+sentence-transformers
+joblib
+numpy
+scikit-learn
+razorpay
+pwdlib[argon2]
+moviepy
